@@ -1,0 +1,7 @@
+services:
+  # Menu do terminal. Rodar com:  docker compose run --rm tasktracker-app
+  tasktracker-app:
+    build: .
+    image: tasktracker
+    stdin_open: true   # mantém a entrada aberta para o input() funcionar
+    tty: true          # cria um terminal virtual dentro do container

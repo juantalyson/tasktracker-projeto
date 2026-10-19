@@ -1,8 +1,35 @@
 # TaskTracker
 
-Gerenciador de tarefas no terminal, feito em Python 3.
+Gerenciador de tarefas no terminal, feito em Python 3 e empacotado com Docker.
 
 Projeto do **Bootcamp II**: [SEU NOME COMPLETO], [SEU CURSO], polo [ASA NORTE ou TAGUATINGA].
+
+## Como rodar com Docker
+
+Pré-requisito: **Docker Desktop** instalado e aberto (<https://www.docker.com/products/docker-desktop/>).
+Rode os comandos na pasta do projeto, onde estão o `Dockerfile` e o `docker-compose.yml`.
+
+### 1. Construir a imagem
+
+```bash
+docker build -t tasktracker .
+```
+
+### 2. Rodar o container em modo isolado
+
+```bash
+docker run -it --rm tasktracker
+```
+
+### 3. Rodar via orquestração (recomendado)
+
+```bash
+docker compose run --rm tasktracker-app
+```
+
+- `-it` (no `docker run`) e `stdin_open: true` + `tty: true` (no `docker-compose.yml`)
+  deixam o terminal interativo, para o `input()` do Python receber o que você digita.
+- `--rm` apaga o container quando você sai do programa.
 
 ## Descrição
 
@@ -26,57 +53,41 @@ prioridade e data limite, e depois vê a lista completa no terminal.
 | Data limite | Formato **DD/MM/AAAA** e precisa ser uma data real (31/02 é recusada). |
 | Status | Definido automaticamente como **Pendente**. |
 
+## O Dockerfile, linha por linha
+
+| Linha | O que faz |
+|---|---|
+| `FROM python:3.11-slim` | Usa uma imagem leve que já tem o Python 3.11. |
+| `WORKDIR /app` | Define a pasta de trabalho dentro do container. |
+| `ENV PYTHONUNBUFFERED=1` | Faz os `print()` aparecerem na hora. |
+| `COPY src/ /app/src/` | Copia o código para dentro da imagem. |
+| `CMD ["python", "src/main.py"]` | Comando que roda quando o container inicia. |
+
 ## Tecnologias
 
-- Python 3 (só a biblioteca padrão, nada para instalar)
+- Python 3.11 (só a biblioteca padrão)
+- Docker e Docker Compose
 - Git e GitHub
 
 ## Estrutura do repositório
 
 ```
 tasktracker-projeto/
-├── README.md                    # Este arquivo
-├── .gitignore                   # Arquivos que o Git deve ignorar
+├── .gitignore
+├── .dockerignore              # O que não vai para dentro da imagem
 ├── docs/
-│   └── planejamento_logico.pdf  # Planejamento lógico da Fase 1
-└── src/
-    └── main.py                  # Código da aplicação
+│   └── planejamento_logico.pdf  # Planejamento da Fase 1 (rastreabilidade)
+├── src/
+│   └── main.py                # Código Python da Fase 2
+├── Dockerfile                 # Receita da imagem (Fase 3)
+├── docker-compose.yml         # Execução interativa orquestrada (Fase 3)
+└── README.md
 ```
 
-## Como instalar e executar
+## Rodar sem Docker
 
-1. Instale o **Python 3.10 ou mais novo** em <https://www.python.org/downloads/>.
-   No Windows, marque a opção **"Add Python to PATH"** durante a instalação.
-2. Baixe o projeto:
-   ```bash
-   git clone https://github.com/[SEU-USUARIO]/tasktracker-projeto.git
-   cd tasktracker-projeto
-   ```
-3. Rode o programa:
-   ```bash
-   python src/main.py
-   ```
-   No Linux ou Mac pode ser `python3 src/main.py`.
+Com o Python 3.10 ou mais novo instalado:
 
-## Exemplo de uso
-
-```
-TaskTracker
-Gerenciador de tarefas no terminal
-
-1. Cadastrar nova tarefa
-2. Visualizar tarefas cadastradas
-3. Sair da aplicação
-Escolha uma opção: 1
-
-Nova tarefa
-Título:
-Erro: o título não pode ficar vazio.
-Título: Estudar Docker
-Descrição (opcional): Volumes e compose
-Prioridade (Alta, Média ou Baixa): urgente
-Erro: prioridade inválida. Use Alta, Média ou Baixa.
-Prioridade (Alta, Média ou Baixa): alta
-Data limite (DD/MM/AAAA): 20/10/2026
-Tarefa cadastrada com sucesso! Status: Pendente.
+```bash
+python src/main.py
 ```
