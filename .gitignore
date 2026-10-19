@@ -8,6 +8,10 @@ __pycache__/
 venv/
 env/
 
+# Banco de dados local (cada um tem o seu)
+dados/
+*.db
+
 # Editores e sistema
 .vscode/
 .idea/

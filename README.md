@@ -29,7 +29,9 @@ docker compose run --rm tasktracker-app
 
 - `-it` (no `docker run`) e `stdin_open: true` + `tty: true` (no `docker-compose.yml`)
   deixam o terminal interativo, para o `input()` do Python receber o que você digita.
-- `--rm` apaga o container quando você sai do programa.
+- `--rm` apaga o container quando você sai. As tarefas **não** se perdem no modo 3,
+  porque ficam no volume `tasktracker-data`. No modo 2 elas somem ao sair; para guardar,
+  use `docker run -it --rm -v tasktracker-data:/app/dados tasktracker`.
 
 ## Descrição
 
@@ -42,6 +44,8 @@ prioridade e data limite, e depois vê a lista completa no terminal.
 - Menu contínuo com 3 opções: cadastrar tarefa, visualizar tarefas e sair.
 - Cada tarefa tem **título**, **descrição**, **prioridade**, **data limite** e **status**.
 - O status começa sempre como **Pendente**.
+- Listagem em tabela com o prazo de cada tarefa ("vence em 3 dias", "atrasada há 1 dia") e totais por prioridade.
+- As tarefas ficam salvas num banco **SQLite** (arquivo único, já vem com o Python).
 - Mensagem clara quando ainda não há tarefas cadastradas.
 
 ### Regras de validação
@@ -60,12 +64,13 @@ prioridade e data limite, e depois vê a lista completa no terminal.
 | `FROM python:3.11-slim` | Usa uma imagem leve que já tem o Python 3.11. |
 | `WORKDIR /app` | Define a pasta de trabalho dentro do container. |
 | `ENV PYTHONUNBUFFERED=1` | Faz os `print()` aparecerem na hora. |
+| `ENV TASKTRACKER_DB=...` | Diz onde o banco SQLite fica (pasta ligada ao volume). |
 | `COPY src/ /app/src/` | Copia o código para dentro da imagem. |
 | `CMD ["python", "src/main.py"]` | Comando que roda quando o container inicia. |
 
 ## Tecnologias
 
-- Python 3.11 (só a biblioteca padrão)
+- Python 3.11 (só a biblioteca padrão, com SQLite e unittest)
 - Docker e Docker Compose
 - Git e GitHub
 
@@ -78,7 +83,11 @@ tasktracker-projeto/
 ├── docs/
 │   └── planejamento_logico.pdf  # Planejamento da Fase 1 (rastreabilidade)
 ├── src/
-│   └── main.py                # Código Python da Fase 2
+│   ├── main.py                # Menu do terminal
+│   ├── tarefas.py             # Regras e validações
+│   └── banco.py               # Banco SQLite
+├── tests/
+│   └── test_tarefas.py        # Testes automáticos
 ├── Dockerfile                 # Receita da imagem (Fase 3)
 ├── docker-compose.yml         # Execução interativa orquestrada (Fase 3)
 └── README.md
@@ -90,4 +99,12 @@ Com o Python 3.10 ou mais novo instalado:
 
 ```bash
 python src/main.py
+```
+
+Sem Docker, as tarefas ficam no arquivo `dados/tasktracker.db`.
+
+## Testes
+
+```bash
+python -m unittest discover -s tests -v
 ```

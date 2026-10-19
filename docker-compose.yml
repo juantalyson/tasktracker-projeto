@@ -5,3 +5,8 @@ services:
     image: tasktracker
     stdin_open: true   # mantém a entrada aberta para o input() funcionar
     tty: true          # cria um terminal virtual dentro do container
+    volumes:
+      - tasktracker-data:/app/dados   # as tarefas não somem ao fechar
+
+volumes:
+  tasktracker-data:

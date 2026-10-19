@@ -3,82 +3,74 @@
 Como rodar:  python src/main.py
 """
 
-import unicodedata
-from datetime import datetime
-
-# Lista que guarda as tarefas enquanto o programa está aberto
-tarefas = []
-
-PRIORIDADES = ["Alta", "Média", "Baixa"]
+import banco
+import tarefas
 
 
-# ---------- Validações ----------
-
-def sem_acento(texto):
-    """'Média' -> 'media'. Usado para comparar a prioridade digitada."""
-    normalizado = unicodedata.normalize("NFD", texto)
-    return "".join(c for c in normalizado if unicodedata.category(c) != "Mn").lower()
-
-
-def ler_titulo():
-    """Título obrigatório: repete a pergunta enquanto vier vazio ou só com espaços."""
+def perguntar_ate_valido(pergunta, validar):
+    """Repete a pergunta até a função de validação aceitar a resposta."""
     while True:
-        titulo = input("Título: ").strip()
-        if titulo:
-            return titulo
-        print("Erro: o título não pode ficar vazio.")
-
-
-def ler_prioridade():
-    """Aceita só Alta, Média (ou Media) e Baixa. Qualquer outra coisa: erro e pergunta de novo."""
-    while True:
-        digitado = sem_acento(input("Prioridade (Alta, Média ou Baixa): ").strip())
-        for prioridade in PRIORIDADES:
-            if digitado == sem_acento(prioridade):
-                return prioridade
-        print("Erro: prioridade inválida. Use Alta, Média ou Baixa.")
-
-
-def ler_data_limite():
-    """Data no formato DD/MM/AAAA e que exista de verdade (31/02 é recusada)."""
-    while True:
-        texto = input("Data limite (DD/MM/AAAA): ").strip()
+        resposta = input(pergunta)
         try:
-            datetime.strptime(texto, "%d/%m/%Y")
-            return texto
-        except ValueError:
-            print("Erro: data inválida. Use DD/MM/AAAA com uma data real.")
+            validar(resposta)
+            return resposta
+        except tarefas.ErroValidacao as erro:
+            print(erro.mensagem)
 
-
-# ---------- Funções do menu ----------
 
 def cadastrar_tarefa():
     print("\nNova tarefa")
-    tarefa = {
-        "titulo": ler_titulo(),
-        "descricao": input("Descrição (opcional): ").strip(),
-        "prioridade": ler_prioridade(),
-        "data_limite": ler_data_limite(),
-        "status": "Pendente",  # toda tarefa nova começa pendente
-    }
-    tarefas.append(tarefa)
-    print("Tarefa cadastrada com sucesso! Status: Pendente.")
+    titulo = perguntar_ate_valido("Título: ", tarefas.validar_titulo)
+    descricao = input("Descrição (opcional): ")
+    prioridade = perguntar_ate_valido("Prioridade (Alta, Média ou Baixa): ", tarefas.validar_prioridade)
+    data_limite = perguntar_ate_valido("Data limite (DD/MM/AAAA): ", tarefas.validar_data)
+
+    tarefa = banco.salvar(tarefas.nova_tarefa(titulo, descricao, prioridade, data_limite))
+    print(f"Tarefa cadastrada com sucesso! Status: {tarefa['status']}.")
+
+
+def _cortar(texto, limite):
+    """Corta textos longos para a tabela não quebrar."""
+    return texto if len(texto) <= limite else texto[: limite - 1] + "…"
 
 
 def listar_tarefas():
-    if not tarefas:
+    lista = banco.listar()
+    if not lista:
         print("\nNenhuma tarefa cadastrada no momento.")
         return
 
-    print("\nTarefas cadastradas")
-    for numero, tarefa in enumerate(tarefas, start=1):
-        print(f"\nTarefa {numero}")
-        print(f"  Título:      {tarefa['titulo']}")
-        print(f"  Descrição:   {tarefa['descricao'] or '—'}")
-        print(f"  Prioridade:  {tarefa['prioridade']}")
-        print(f"  Data limite: {tarefa['data_limite']}")
-        print(f"  Status:      {tarefa['status']}")
-    print(f"\nTotal: {len(tarefas)} tarefa(s)")
+    cabecalho = ["#", "Título", "Descrição", "Prioridade", "Data limite", "Prazo", "Status"]
+    linhas = [
+        [
+            str(t["id"]),
+            _cortar(t["titulo"], 28),
+            _cortar(t["descricao"] or "—", 28),
+            t["prioridade"],
+            tarefas.data_br(t["data_limite"]),
+            tarefas.texto_prazo(t),
+            t["status"],
+        ]
+        for t in lista
+    ]
+
+    # Largura de cada coluna = maior texto daquela coluna
+    larguras = [max(len(linha[i]) for linha in [cabecalho] + linhas) for i in range(len(cabecalho))]
+
+    def formatar(linha):
+        return "  ".join(valor.ljust(larguras[i]) for i, valor in enumerate(linha))
+
+    print("\nTarefas cadastradas\n")
+    print(formatar(cabecalho))
+    print("-" * len(formatar(cabecalho)))
+    for linha in linhas:
+        print(formatar(linha))
+
+    numeros = tarefas.estatisticas(lista)
+    por_prioridade = " | ".join(
+        f"{nome}: {dados['total']}" for nome, dados in numeros["por_prioridade"].items()
+    )
+    print(f"\nTotal: {numeros['total']} | {por_prioridade} | Atrasadas: {numeros['atrasadas']}")
 
 
 def mostrar_menu():

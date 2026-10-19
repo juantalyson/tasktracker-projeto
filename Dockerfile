@@ -6,6 +6,8 @@ WORKDIR /app
 
 # Mostra os prints na hora (sem guardar em buffer)
 ENV PYTHONUNBUFFERED=1
+# Onde o banco SQLite fica (o docker-compose liga essa pasta a um volume)
+ENV TASKTRACKER_DB=/app/dados/tasktracker.db
 
 # Copia o código da aplicação
 COPY src/ /app/src/
