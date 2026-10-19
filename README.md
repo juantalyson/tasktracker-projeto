@@ -2,7 +2,7 @@
 
 Gerenciador de tarefas no terminal, feito em Python 3.
 
-Projeto do **Bootcamp II**: Juan Talyson Macêdo Dos Santos, Ciências da computação, polo ASA NORTE.
+Projeto do **Bootcamp II**: [SEU NOME COMPLETO], [SEU CURSO], polo [ASA NORTE ou TAGUATINGA].
 
 ## Descrição
 
