@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>TaskTracker API</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .rota { margin-bottom: 16px; }
+    .rota header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .metodo { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 13px; padding: 4px 10px; border-radius: 6px; }
+    .GET { background: var(--azul-claro); color: var(--azul-escuro); }
+    .POST { background: var(--ok-fundo); color: var(--ok); }
+    .PATCH { background: var(--alerta-fundo); color: var(--alerta); }
+    .caminho { font-family: "IBM Plex Mono", monospace; font-weight: 600; color: var(--texto); }
+    pre { background: #101828; color: #F2F4F7; padding: 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+    h3 { font-size: 14px; color: var(--texto); margin: 16px 0 6px; }
+    .grupo { margin: 32px 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--texto-3); }
+  </style>
+</head>
+<body>
+  <header class="topo">
+    <span class="marca"><img src="{{ url_for('static', filename='logo.svg') }}" alt="" width="28" height="28">tasktracker api</span>
+    <nav class="abas">
+      <a href="/#visao-geral">Visão geral</a>
+      <a href="/#tarefas">Tarefas</a>
+      <a href="/docs" class="ativa">API</a>
+    </nav>
+  </header>
+
+  <main class="conteudo">
+    <h1>TaskTracker API</h1>
+    <p class="sub">API REST que usa o mesmo núcleo de regras do terminal. Os dados ficam no mesmo SQLite que o terminal grava, então uma tarefa cadastrada em um lugar aparece no outro.</p>
+    <p>Servidor: <code>http://localhost:8000</code></p>
+
+    <p class="grupo">Tarefas</p>
+
+    <section class="painel rota">
+      <header><span class="metodo GET">GET</span><span class="caminho">/tarefas</span></header>
+      <p>Lista as tarefas ordenadas pela data limite. Filtros opcionais: <code>?prioridade=Alta</code> e <code>?status=Pendente</code>.</p>
+      <h3>Resposta 200</h3>
+      <pre>[
+  {
+    "id": 1,
+    "titulo": "Escrever testes do repositório",
+    "descricao": "Cobrir adicionar, listar e concluir",
+    "prioridade": "Alta",
+    "data_limite": "2026-10-20",
+    "status": "Pendente",
+    "data_limite_br": "20/10/2026",
+    "prazo": "vence em 2 dias",
+    "atrasada": false
+  }
+]</pre>
+    </section>
+
+    <section class="painel rota">
+      <header><span class="metodo POST">POST</span><span class="caminho">/tarefas</span></header>
+      <p>Cadastra uma tarefa com as mesmas validações do terminal. A tarefa começa como <strong>Pendente</strong>.</p>
+      <h3>Corpo da requisição (JSON)</h3>
+      <pre>{
+  "titulo": "Escrever testes do repositório",
+  "descricao": "Cobrir adicionar, listar e concluir",
+  "prioridade": "alta",
+  "data_limite": "20/10/2026"
+}</pre>
+      <h3>Resposta 201: tarefa criada</h3>
+      <pre>{ "id": 9, "titulo": "Escrever testes do repositório", "prioridade": "Alta", "data_limite": "2026-10-20", "status": "Pendente", ... }</pre>
+      <h3>Resposta 422: campo inválido, com a mesma mensagem do terminal</h3>
+      <pre>{ "erro": { "campo": "data_limite", "mensagem": "Erro: data inválida. Use DD/MM/AAAA com uma data real." } }</pre>
+    </section>
+
+    <section class="painel rota">
+      <header><span class="metodo PATCH">PATCH</span><span class="caminho">/tarefas/{id}/concluir</span></header>
+      <p>Marca a tarefa como <strong>Concluída</strong>. Responde 404 se o id não existir.</p>
+    </section>
+
+    <p class="grupo">Painel</p>
+
+    <section class="painel rota">
+      <header><span class="metodo GET">GET</span><span class="caminho">/estatisticas</span></header>
+      <p>Totais por prioridade, situação e prazo, usados na visão geral.</p>
+      <pre>{ "total": 8, "pendentes": 6, "concluidas": 2, "percentual_concluidas": 25, "atrasadas": 1, "vencem_em_7_dias": 3,
+  "por_prioridade": { "Alta": { "total": 3, "pendentes": 3, "concluidas": 0 }, ... },
+  "hoje": "18/10/2026", "proximos_prazos": [ ... ] }</pre>
+    </section>
+
+    <p class="grupo">Sistema</p>
+
+    <section class="painel rota">
+      <header><span class="metodo GET">GET</span><span class="caminho">/saude</span></header>
+      <p>Verifica se a API está no ar. Usado no healthcheck do docker compose.</p>
+      <pre>{ "status": "ok" }</pre>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,12 +1,25 @@
 services:
-  # Menu do terminal. Rodar com:  docker compose run --rm tasktracker-app
+  # Menu do terminal (o principal). Rodar com:  docker compose run --rm tasktracker-app
   tasktracker-app:
     build: .
     image: tasktracker
     stdin_open: true   # mantém a entrada aberta para o input() funcionar
     tty: true          # cria um terminal virtual dentro do container
     volumes:
-      - tasktracker-data:/app/dados   # as tarefas não somem ao fechar
+      - ./dados:/app/dados   # mesma pasta dados/ do projeto: Docker e Windows usam o mesmo banco
 
-volumes:
-  tasktracker-data:
+  # Site + API (extra). Rodar com:  docker compose --profile web up
+  web:
+    image: tasktracker
+    build: .
+    command: ["python", "src/app.py"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./dados:/app/dados   # mesmo banco do terminal
+    profiles: ["web"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/saude')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

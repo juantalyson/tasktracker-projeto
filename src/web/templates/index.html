@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>TaskTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topo">
+    <span class="marca"><img src="{{ url_for('static', filename='logo.svg') }}" alt="" width="28" height="28">tasktracker</span>
+    <nav class="abas">
+      <a href="#visao-geral" data-aba="visao-geral">Visão geral</a>
+      <a href="#tarefas" data-aba="tarefas">Tarefas</a>
+      <a href="/docs">API</a>
+    </nav>
+    <a class="botao botao-primario" href="#tarefas" data-ir-formulario>Nova tarefa</a>
+  </header>
+
+  <main class="conteudo">
+    <!-- ===== Visão geral ===== -->
+    <section id="visao-geral" class="aba">
+      <div class="titulo-secao">
+        <div>
+          <h1>Visão geral</h1>
+          <p class="sub">Os mesmos dados que o terminal grava no SQLite, lidos pela API.</p>
+        </div>
+        <span class="hoje" id="hoje"></span>
+      </div>
+
+      <div class="cartoes">
+        <div class="cartao"><span class="rotulo">Total de tarefas</span><strong id="n-total">0</strong><span class="detalhe" id="d-total"></span></div>
+        <div class="cartao"><span class="rotulo">Pendentes</span><strong id="n-pendentes">0</strong><span class="detalhe">aguardando conclusão</span></div>
+        <div class="cartao"><span class="rotulo">Concluídas</span><strong id="n-concluidas">0</strong><span class="detalhe" id="d-concluidas"></span></div>
+        <div class="cartao"><span class="rotulo">Atrasadas</span><strong id="n-atrasadas" class="perigo">0</strong><span class="detalhe" id="d-atrasadas"></span></div>
+        <div class="cartao"><span class="rotulo">Vencem em 7 dias</span><strong id="n-semana">0</strong><span class="detalhe">próxima semana</span></div>
+      </div>
+
+      <div class="duas-colunas">
+        <div class="painel">
+          <h2>Tarefas por prioridade</h2>
+          <div class="legenda"><span><i class="ponto ponto-pendente"></i>Pendentes</span><span><i class="ponto ponto-concluida"></i>Concluídas</span></div>
+          <div id="barras"></div>
+        </div>
+        <div class="painel">
+          <div class="painel-cabecalho">
+            <h2>Próximos prazos</h2>
+            <a href="#tarefas" data-aba="tarefas">Ver todas as tarefas</a>
+          </div>
+          <ul id="proximos" class="proximos"></ul>
+        </div>
+      </div>
+      <p class="rodape">Dados servidos pela API em <code>/estatisticas</code>, a mesma base que o terminal usa.</p>
+    </section>
+
+    <!-- ===== Tarefas ===== -->
+    <section id="tarefas" class="aba" hidden>
+      <div class="titulo-secao">
+        <div>
+          <h1>Tarefas</h1>
+          <p class="sub" id="resumo-tarefas"></p>
+        </div>
+      </div>
+
+      <div class="layout-tarefas">
+        <div class="painel">
+          <div class="filtros">
+            <label>Buscar<input type="search" id="busca" placeholder="Título ou descrição"></label>
+            <label>Prioridade
+              <select id="filtro-prioridade">
+                <option value="">Todas</option><option>Alta</option><option>Média</option><option>Baixa</option>
+              </select>
+            </label>
+            <label>Status
+              <select id="filtro-status">
+                <option value="">Todos</option><option value="Pendente">Pendentes</option><option value="Concluída">Concluídas</option>
+              </select>
+            </label>
+          </div>
+          <div class="tabela-rolagem">
+            <table>
+              <thead><tr><th>Tarefa</th><th>Prioridade</th><th>Data limite</th><th>Prazo</th><th>Status</th><th>Ação</th></tr></thead>
+              <tbody id="linhas"></tbody>
+            </table>
+          </div>
+          <p id="vazio" class="vazio" hidden>Nenhuma tarefa encontrada.</p>
+        </div>
+
+        <form id="formulario" class="painel formulario" novalidate>
+          <h2>Nova tarefa</h2>
+          <label>Título<input name="titulo" autocomplete="off"></label>
+          <label><span>Descrição <span class="opcional">(opcional)</span></span><textarea name="descricao" rows="3"></textarea></label>
+          <label>Prioridade
+            <select name="prioridade"><option>Média</option><option>Alta</option><option>Baixa</option></select>
+          </label>
+          <label>Data limite
+            <span class="campo-data">
+              <input name="data_limite" placeholder="DD/MM/AAAA" inputmode="numeric" maxlength="10" autocomplete="off">
+              <button type="button" class="botao botao-calendario" id="abrir-calendario" aria-label="Abrir calendário" title="Abrir calendário">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <!-- Calendário do navegador: fica escondido e só abre pelo botão acima -->
+              <input type="date" id="calendario" class="calendario-oculto" tabindex="-1" aria-hidden="true">
+            </span>
+          </label>
+          <p id="erro-formulario" class="erro" role="alert" hidden></p>
+          <button type="submit" class="botao botao-primario">Cadastrar tarefa</button>
+          <p class="dica">Toda tarefa nova começa como Pendente. As regras são as mesmas do terminal.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
