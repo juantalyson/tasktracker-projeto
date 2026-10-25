@@ -134,7 +134,8 @@ tasktracker-projeto/
 ├── .gitignore
 ├── .dockerignore              # O que não vai para dentro da imagem
 ├── docs/
-│   └── planejamento_logico.pdf  # Planejamento da Fase 1 (rastreabilidade)
+│   ├── planejamento_logico.pdf  # Planejamento da Fase 1 (rastreabilidade)
+│   └── decisoes/              # Registro das decisões técnicas (por que fizemos cada escolha)
 ├── src/
 │   ├── main.py                # Menu do terminal
 │   ├── tarefas.py             # Regras e validações (usadas pelo terminal e pelo site)
