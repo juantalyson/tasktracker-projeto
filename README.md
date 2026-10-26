@@ -5,7 +5,6 @@ empacotado com Docker. O terminal e o site usam as mesmas regras e o mesmo banco
 
 Projeto do **Bootcamp II**: Juan Talyson Macêdo Dos Santos, Ciências da computação, polo ASA NORTE.
 
-Vídeo de demonstração: [LINK DO YOUTUBE]
 
 ## Como rodar com Docker
 
